@@ -1,23 +1,11 @@
 <template>
-  <!-- <div v-if="isDragOver" class="drag-mask">Drop your image here</div> -->
   <div
     ref="canvasContainer"
     class="canvas-container"
-    :class="{
-      'canvas-container': true,
-      bg: true,
-      dark: imgLoaded,
-      'drag-over': isDragOver,
-    }"
+    :class="{ bg: true, dark: imgLoaded, 'drag-over': isDragOver }"
     @drop.prevent="handleDrop"
     @dragover.prevent="isDragOver = true"
-    @dragleave="
-      (e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) {
-          isDragOver = false;
-        }
-      }
-    "
+    @dragleave="(e) => { if (!e.currentTarget.contains(e.relatedTarget)) isDragOver = false; }"
     @mousedown="startDragging"
     @mouseup="stopDragging"
     @mousemove="dragImage"
@@ -26,251 +14,144 @@
     @touchmove="touchMove"
     @touchend="touchEnd"
   >
-    <div v-if="!imgLoaded && !isDragOver" class="title">
-      <div>SuperResolution in Your Browser</div>
-      <img
-        style="
-          width: 50px;
-          display: block;
-          margin: auto;
-          transform: translate(-18%, 0);
-        "
-        src="/demo/2.png"
-        alt="favicon"
-        class="favicon"
-        @click="testdemo"
-      />
+    <!-- 랜딩 헤더 -->
+    <div v-if="!imgLoaded && !isDragOver" class="landing-header">
+      <div class="landing-title">이미지 업스케일러</div>
+      <div class="landing-subtitle">AI로 이미지를 선명하게 — 브라우저에서 바로</div>
     </div>
+
     <canvas ref="canvas"></canvas>
     <canvas ref="imgCanvas" style="display: none"></canvas>
-    <button
+
+    <!-- 업로드 영역 -->
+    <div
       v-show="!imgLoaded"
-      class="upload-button"
+      class="upload-zone"
+      :class="{ 'drag-active': isDragOver }"
       @click="handleClick"
-      :style="upload_button_style"
     >
-      <div class="upload-container">
-        <svg viewBox="0 0 24 24">
-          <path
-            d="M19 7v3h-2V7h-3V5h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5a2 2 0 00-2 2v12c0 1.1.9 2 2 2h12a2 2 0 002-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"
-            fill0="rgba(255, 182, 193, 1)"
-            fill00="#ff568a"
-            fill="white"
-          ></path>
-        </svg>
-      </div>
-    </button>
-    <button v-show="imgLoaded" class="goback" @click="reloadPage">
-      <svg width="24" height="24" viewBox="0 0 1024 1024">
-        <g
-          fill="rgba(255, 255, 255, 1)"
-          stroke-width="50"
-          stroke="rgba(255, 255, 255, 1)"
-        >
-          <path
-            d="M511.4 175.3l-31.6 31.6-74.8 74.8-87.7 87.7-71.5 71.5-20.1 20.1c-7.1 7.1-13.9 14.3-18.1 23.7-11.2 25.4-6 53.9 13.6 73.7l13.2 13.2 62.7 62.7 86.8 86.8 80.8 80.8 44.7 44.7 2.1 2.1c6.7 6.7 18.9 7.2 25.5 0 6.6-7.2 7.1-18.3 0-25.5l-30.9-30.9-73.8-73.8-87.1-87.1-71.7-71.7-21.1-21.1-5.3-5.3-1.1-1.1-0.1-0.1c-0.3-0.3-3.9-4.4-2.4-2.6 1.3 1.7-0.1-0.2-0.3-0.5-0.8-1.2-1.5-2.4-2.2-3.6-0.3-0.6-0.7-1.2-1-1.9-0.3-0.6-1.3-3.3-0.5-1 0.7 2.3-0.7-2.4-0.9-3.1-0.4-1.4-1.7-6-0.7-2-0.5-1.9-0.3-4.2-0.3-6.2 0-0.1 0.3-4.8 0.3-4.8 0.5 0.1-0.7 3.6 0 0.7l0.6-2.7c0.3-1.2 2.3-6.2 0.5-2.2 0.8-1.7 1.6-3.4 2.6-5 0.6-0.9 4-5.1 1.3-2.2 1-1.1 1.9-2.2 3-3.3l0.2-0.2 1.2-1.2 14.3-14.3 63.6-63.6 86-86 79.8-79.8 44-44 2.1-2.1c6.7-6.7 7.2-18.9 0-25.5-7.4-6.3-18.6-6.8-25.7 0.3z"
-          ></path>
-          <path
-            d="M804.6 494H432.9c-17.2 0-34.5-0.5-51.7 0h-0.7c-9.4 0-18.4 8.3-18 18 0.4 9.8 7.9 18 18 18h371.7c17.2 0 34.5 0.5 51.7 0h0.7c9.4 0 18.4-8.3 18-18-0.5-9.8-8-18-18-18z"
-          ></path>
-        </g>
+      <svg class="upload-icon" viewBox="0 0 24 24" width="44" height="44">
+        <path d="M19 7v3h-2V7h-3V5h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5a2 2 0 00-2 2v12c0 1.1.9 2 2 2h12a2 2 0 002-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z" fill="currentColor"></path>
+      </svg>
+      <span class="upload-main">클릭하거나 이미지를 드래그하세요</span>
+      <span class="upload-sub">JPG · PNG · WEBP 지원</span>
+    </div>
+
+    <!-- 뒤로 가기 -->
+    <button v-show="imgLoaded" class="btn-back" @click="reloadPage">
+      <svg width="18" height="18" viewBox="0 0 1024 1024" fill="white">
+        <path d="M511.4 175.3l-31.6 31.6-74.8 74.8-87.7 87.7-71.5 71.5-20.1 20.1c-7.1 7.1-13.9 14.3-18.1 23.7-11.2 25.4-6 53.9 13.6 73.7l13.2 13.2 62.7 62.7 86.8 86.8 80.8 80.8 44.7 44.7 2.1 2.1c6.7 6.7 18.9 7.2 25.5 0 6.6-7.2 7.1-18.3 0-25.5l-30.9-30.9-73.8-73.8-87.1-87.1-71.7-71.7-21.1-21.1-5.3-5.3-1.1-1.1-.1-.1c-.3-.3-3.9-4.4-2.4-2.6 1.3 1.7-.1-.2-.3-.5-.8-1.2-1.5-2.4-2.2-3.6-.3-.6-.7-1.2-1-1.9-.3-.6-1.3-3.3-.5-1 .7 2.3-.7-2.4-.9-3.1-.4-1.4-1.7-6-.7-2-.5-1.9-.3-4.2-.3-6.2 0-.1.3-4.8.3-4.8.5.1-.7 3.6 0 .7l.6-2.7c.3-1.2 2.3-6.2.5-2.2.8-1.7 1.6-3.4 2.6-5 .6-.9 4-5.1 1.3-2.2 1-1.1 1.9-2.2 3-3.3l.2-.2 1.2-1.2 14.3-14.3 63.6-63.6 86-86 79.8-79.8 44-44 2.1-2.1c6.7-6.7 7.2-18.9 0-25.5-7.4-6.3-18.6-6.8-25.7.3z"></path>
+        <path d="M804.6 494H432.9c-17.2 0-34.5-.5-51.7 0h-.7c-9.4 0-18.4 8.3-18 18 .4 9.8 7.9 18 18 18h371.7c17.2 0 34.5.5 51.7 0h.7c9.4 0 18.4-8.3 18-18-.5-9.8-8-18-18-18z"></path>
       </svg>
     </button>
-    <a
-      href="https://github.com/xororz/web-realesrgan"
-      v-show="imgLoaded"
-      target="_blank"
-    >
-      <img src="/gh.png" alt="github" class="github" />
+
+    <!-- GitHub -->
+    <a href="https://github.com/xororz/web-realesrgan" v-show="imgLoaded" target="_blank" class="btn-github-wrap">
+      <img src="/gh.png" alt="github" class="btn-github" />
     </a>
+
+    <!-- 플로팅 설정 패널 -->
     <div class="floating-menu" :style="menu_style" @mousedown.stop>
-      <div>
-        <div class="info" v-if="info">{{ info }}</div>
+
+      <!-- 처리 중 / 완료 상태 -->
+      <div v-if="isProcessing || isDone" class="status-wrap">
+        <div class="status-info" v-if="info">{{ info }}</div>
         <div class="progressbar" v-if="isProcessing || isDone">
           <progress max="100" :value="progress"></progress>
         </div>
+        <button class="btn-save" v-if="isDone" @click="saveImage">이미지 저장</button>
       </div>
-      <div class="opt" v-if="!isProcessing && !isDone">
-        <div>
-          <span class="description">Type</span>
-          <select v-model="model_type">
-            <option value="realesrgan">Real-ESRGAN</option>
-            <option value="realcugan">Real-CUGAN</option>
-          </select>
-        </div>
-        <div v-if="model_type === 'realesrgan'">
-          <div>
-            <span class="description">Model</span>
-            <select v-model="model">
-              <option
-                v-for="modelOption in model_config.realesrgan.model"
-                :key="modelOption"
-                :value="modelOption"
-              >
-                {{ modelOption }}
-              </option>
+
+      <!-- 설정 영역 -->
+      <div v-if="!isProcessing && !isDone" class="settings-wrap">
+        <div class="settings-grid">
+          <div class="setting-row">
+            <label class="setting-label">종류</label>
+            <select v-model="model_type">
+              <option value="realesrgan">Real-ESRGAN</option>
+              <option value="realcugan">Real-CUGAN</option>
             </select>
           </div>
-          <div>
-            <span class="description">Scale</span>
-            <select v-model="factor">
-              <option
-                v-for="factorOption in model_config.realesrgan.factor"
-                :key="factorOption"
-                :value="factorOption"
-              >
-                {{ factorOption }}
-              </option>
+
+          <template v-if="model_type === 'realesrgan'">
+            <div class="setting-row">
+              <label class="setting-label">모델</label>
+              <select v-model="model">
+                <option v-for="m in model_config.realesrgan.model" :key="m" :value="m">{{ m }}</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">배율</label>
+              <select v-model="factor">
+                <option v-for="f in model_config.realesrgan.factor" :key="f" :value="f">{{ f }}x</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">타일 크기</label>
+              <select v-model="tile_size">
+                <option v-for="t in model_config.realesrgan.tile_size" :key="t" :value="t">{{ t }}</option>
+              </select>
+            </div>
+          </template>
+
+          <template v-else-if="model_type === 'realcugan'">
+            <div class="setting-row">
+              <label class="setting-label">노이즈 제거</label>
+              <select v-model="denoise">
+                <option v-for="d in model_config.realcugan.denoise[factor]" :key="d" :value="d">{{ d }}</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">배율</label>
+              <select v-model="factor">
+                <option v-for="f in model_config.realcugan.factor" :key="f" :value="f">{{ f }}x</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">타일 크기</label>
+              <select v-model="tile_size">
+                <option v-for="t in model_config.realcugan.tile_size" :key="t" :value="t">{{ t }}</option>
+              </select>
+            </div>
+          </template>
+
+          <div class="setting-row">
+            <label class="setting-label">타일 겹침</label>
+            <select v-model="min_lap">
+              <option>0</option><option>4</option><option>8</option>
+              <option>12</option><option>16</option><option>20</option>
             </select>
           </div>
-          <div>
-            <span class="description">Tile Size</span>
-            <select v-model="tile_size">
-              <option
-                v-for="tileSizeOption in model_config.realesrgan.tile_size"
-                :key="tileSizeOption"
-                :value="tileSizeOption"
-              >
-                {{ tileSizeOption }}
-              </option>
-            </select>
-          </div>
-        </div>
-        <div v-else-if="model_type === 'realcugan'">
-          <div>
-            <span class="description">Denoise</span>
-            <select v-model="denoise">
-              <option
-                v-for="denoiseOption in model_config.realcugan.denoise[factor]"
-                :key="denoiseOption"
-                :value="denoiseOption"
-              >
-                {{ denoiseOption }}
-              </option>
-            </select>
-          </div>
-          <div>
-            <span class="description">Scale</span>
-            <select v-model="factor">
-              <option
-                v-for="factorOption in model_config.realcugan.factor"
-                :key="factorOption"
-                :value="factorOption"
-              >
-                {{ factorOption }}
-              </option>
-            </select>
-          </div>
-          <div>
-            <span class="description">Tile Size</span>
-            <select v-model="tile_size">
-              <option
-                v-for="tileSizeOption in model_config.realcugan.tile_size"
-                :key="tileSizeOption"
-                :value="tileSizeOption"
-              >
-                {{ tileSizeOption }}
-              </option>
+          <div class="setting-row">
+            <label class="setting-label">실행 환경</label>
+            <select v-model="backend">
+              <option value="webgl">WebGL</option>
+              <option value="webgpu">WebGPU</option>
             </select>
           </div>
         </div>
-        <div>
-          <span class="description">Overlap</span>
-          <select v-model="min_lap">
-            <option>0</option>
-            <option>4</option>
-            <option>8</option>
-            <option>12</option>
-            <option>16</option>
-            <option>20</option>
-          </select>
-        </div>
-        <div>
-          <span class="description">Run on</span>
-          <select v-model="backend">
-            <option value="webgl">WebGL</option>
-            <option value="webgpu">WebGPU</option>
-          </select>
+
+        <div class="action-row">
+          <a class="btn-help" href="https://github.com/xororz/web-realesrgan/?tab=readme-ov-file#best-practice" target="_blank">
+            <svg viewBox="0 0 15 15" fill="currentColor" width="16" height="16">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M7.5 1a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 12a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11zm1.55-8.42a1.84 1.84 0 0 0-.61-.42A2.25 2.25 0 0 0 7.53 4a2.16 2.16 0 0 0-.88.17c-.239.1-.45.254-.62.45a1.89 1.89 0 0 0-.38.62 3 3 0 0 0-.15.72h1.23a.84.84 0 0 1 .506-.741.72.72 0 0 1 .304-.049.86.86 0 0 1 .27 0 .64.64 0 0 1 .22.14.6.6 0 0 1 .16.22.73.73 0 0 1 .06.3c0 .173-.037.343-.11.5a2.4 2.4 0 0 1-.27.46l-.35.42c-.12.13-.24.27-.35.41a2.33 2.33 0 0 0-.27.45 1.18 1.18 0 0 0-.1.5v.66H8v-.49a.94.94 0 0 1 .11-.42 3.09 3.09 0 0 1 .28-.41l.36-.44a4.29 4.29 0 0 0 .36-.48 2.59 2.59 0 0 0 .28-.55 1.91 1.91 0 0 0 .11-.64 2.18 2.18 0 0 0-.1-.67 1.52 1.52 0 0 0-.35-.55zM6.8 9.83h1.17V11H6.8V9.83z"/>
+            </svg>
+            도움말
+          </a>
+          <button class="btn-run" @click="startTask">업스케일 시작</button>
         </div>
       </div>
-      <div>
-        <div>
-          <button class="question-button" v-if="!isProcessing && !isDone">
-            <a
-              href="https://github.com/xororz/web-realesrgan/?tab=readme-ov-file#best-practice"
-              target="_blank"
-            >
-              <svg
-                viewBox="0 0 15 15"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="#fff"
-              >
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M7.5 1a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 12a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11zm1.55-8.42a1.84 1.84 0 0 0-.61-.42A2.25 2.25 0 0 0 7.53 4a2.16 2.16 0 0 0-.88.17c-.239.1-.45.254-.62.45a1.89 1.89 0 0 0-.38.62 3 3 0 0 0-.15.72h1.23a.84.84 0 0 1 .506-.741.72.72 0 0 1 .304-.049.86.86 0 0 1 .27 0 .64.64 0 0 1 .22.14.6.6 0 0 1 .16.22.73.73 0 0 1 .06.3c0 .173-.037.343-.11.5a2.4 2.4 0 0 1-.27.46l-.35.42c-.12.13-.24.27-.35.41a2.33 2.33 0 0 0-.27.45 1.18 1.18 0 0 0-.1.5v.66H8v-.49a.94.94 0 0 1 .11-.42 3.09 3.09 0 0 1 .28-.41l.36-.44a4.29 4.29 0 0 0 .36-.48 2.59 2.59 0 0 0 .28-.55 1.91 1.91 0 0 0 .11-.64 2.18 2.18 0 0 0-.1-.67 1.52 1.52 0 0 0-.35-.55zM6.8 9.83h1.17V11H6.8V9.83z"
-                />
-              </svg>
-            </a>
-          </button>
-        </div>
-        <button
-          class="run-button"
-          v-if="!isProcessing && !isDone"
-          @click="startTask"
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z" fill="rgba(255, 255, 255, 1)"></path>
-          </svg>
-        </button>
-      </div>
-      <button class="save-button" v-if="isDone" @click="saveImage">
-        <svg width="22" viewBox="0 -4 23.9 30">
-          <path
-            fill="#fff"
-            d="M6.6 2.7h-4v13.2h2.7A2.7 2.7 0 018 18.6a2.7 2.7 0 002.6 2.6h2.7a2.7 2.7 0 002.6-2.6 2.7 2.7 0 012.7-2.7h2.6V2.7h-4a1.3 1.3 0 110-2.7h4A2.7 2.7 0 0124 2.7v18.5a2.7 2.7 0 01-2.7 2.7H2.7A2.7 2.7 0 010 21.2V2.7A2.7 2.7 0 012.7 0h4a1.3 1.3 0 010 2.7zm4 7.4V1.3a1.3 1.3 0 112.7 0v8.8L15 8.4a1.3 1.3 0 011.9 1.8l-4 4a1.3 1.3 0 01-1.9 0l-4-4A1.3 1.3 0 019 8.4z"
-          ></path>
-        </svg>
-      </button>
     </div>
-    <div
-      class="dragLine"
-      ref="dragLine"
-      v-show="isDone"
-      @mousedown.stop="startDraggingLine"
-      @mousemove.stop="dragLine"
-    >
+
+    <!-- 비교선 -->
+    <div class="dragLine" ref="dragLine" v-show="isDone" @mousedown.stop="startDraggingLine" @mousemove.stop="dragLine">
       <div class="dragBall">
-        <svg width="30" viewBox="0 0 27 20">
-          <path fill="#ff3484" d="M9.6 0L0 9.6l9.6 9.6z"></path>
-          <path fill="#5fb3e5" d="M17 19.2l9.5-9.6L16.9 0z"></path>
+        <svg width="28" viewBox="0 0 27 20">
+          <path fill="#a78bfa" d="M9.6 0L0 9.6l9.6 9.6z"></path>
+          <path fill="#60a5fa" d="M17 19.2l9.5-9.6L16.9 0z"></path>
         </svg>
       </div>
     </div>
-    <div v-if="!imgLoaded & !isDragOver" class="bottom-svg">
-      <svg width="100%" viewBox="0 0 1920 140" class="_top-wave_vzxu7_106">
-        <path
-          fill="#76c8fe"
-          d="M1920 0l-107 28c-106 29-320 85-533 93-213 7-427-36-640-50s-427 0-533 7L0 85v171h1920z"
-          class="_sub-wave_vzxu7_117"
-        ></path>
-        <path
-          fill="#009aff"
-          d="M0 129l64-26c64-27 192-81 320-75 128 5 256 69 384 64 128-6 256-80 384-91s256 43 384 70c128 26 256 26 320 26h64v96H0z"
-          class="_main-wave_vzxu7_113"
-        ></path>
-      </svg>
-      <div class="demo">
-        <div>No ideas? Try one of these:</div>
-        <br />
-        <div>
-          <img class="demoimg" src="/demo/1.jpg" alt="demo" @click="testdemo" />
-          <img class="demoimg" src="/demo/2.jpg" alt="demo" @click="testdemo" />
-          <img class="demoimg" src="/demo/3.jpg" alt="demo" @click="testdemo" />
-        </div>
-      </div>
-    </div>
-    <!-- <div v-if="!imgLoaded" class="placeholder"></div> -->
   </div>
 </template>
 
@@ -312,32 +193,25 @@ export default {
       progress: 0,
       model_type: "realcugan",
       model_config: {
-        realesrgan: {
-          model: ["anime_fast", "anime_plus", "general_fast", "general_plus"],
-          factor: [4],
-          tile_size: [32, 48, 64, 96, 128, 192, 256],
-        },
-        realcugan: {
-          // factor: [2, 3, 4],
-          factor: [2, 4],
-          denoise: {
-            2: [
-              "conservative",
-              "no-denoise",
-              "denoise1x",
-              "denoise2x",
-              "denoise3x",
-            ],
-            3: ["conservative", "denoise3x"],
-            4: ["conservative", "no-denoise", "denoise3x"],
-          },
-          tile_size: [32, 48, 64, 96, 128, 192, 256, 384, 512],
-        },
-      },
+  realesrgan: {
+    model: ["general_plus"],
+    factor: [4],
+    tile_size: [128, 256],
+  },
+  realcugan: {
+    factor: [2, 4],
+    denoise: {
+      2: ["conservative", "no-denoise", "denoise1x", "denoise2x", "denoise3x"],
+      3: ["conservative", "denoise3x"],
+      4: ["conservative", "no-denoise", "denoise3x"],
+    },
+    tile_size: [128, 256],
+  },
+},
       model: "anime_plus",
       factor: 4,
       denoise: "conservative",
-      tile_size: 64,
+      tile_size: 128,
       min_lap: 12,
       save_quality: 92,
       backend: "webgl",
@@ -390,19 +264,11 @@ export default {
     menu_style() {
       if (this.imgLoaded) {
         if (this.isProcessing || this.isDone) {
-          return {
-            height: "60px",
-          };
+          return { height: "auto", minHeight: "80px" };
         }
-        return {
-          opacity: 1,
-        };
+        return { opacity: 1 };
       } else {
-        return {
-          opacity: 0,
-          height: "150px",
-          transition: "all 0s ease",
-        };
+        return { opacity: 0, pointerEvents: "none", transition: "all 0s ease" };
       }
     },
     upload_button_style() {
@@ -820,7 +686,7 @@ export default {
               new Uint8ClampedArray(output)
             );
           }
-          this.info = "Processing Image...";
+          this.info = "이미지 처리 중...";
           if (this.inputAlpha) {
             worker.postMessage(
               {
@@ -891,7 +757,7 @@ export default {
             this.$refs.dragLine.style.left =
               this.linePosition / this.dpr + "px";
             this.drawImage();
-            this.info = "Done! Time used: " + (Date.now() - start) / 1000 + "s";
+            this.info = "완료! 처리 시간: " + (Date.now() - start) / 1000 + "초";
           };
           this.isProcessing = false;
           this.isDone = true;

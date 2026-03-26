@@ -32,5 +32,3 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-realesrgan
-realcugan
